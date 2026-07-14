@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import HomePage from "./pages/HomePage";
 import CollectionPage from "./pages/CollectionPage";
+import ProductPage from "./pages/ProductPage";
 
 function ScrollToTop() {
   useEffect(() => {
@@ -31,6 +32,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/collection" element={<CollectionPage />} />
+        <Route path="/product/:productId" element={<ProductPage />} />
       </Routes>
     </Layout>
   );

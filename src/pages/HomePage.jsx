@@ -107,43 +107,56 @@ const itemAnim = { hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0, tran
 
 function Categories() {
   return (
-    <section id="categories" className="py-24 relative">
+    <section id="categories" className="py-28 bg-[#0B0B0B] relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
-          <span className="text-xs tracking-[0.2em] text-gold-400/80 uppercase font-medium">Shop By Category</span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mt-3">
-            Our <span className="gold-gradient-text">Collection</span>
+          <span className="text-[10px] tracking-[0.3em] text-gold-400 uppercase font-semibold">Grecado Collections</span>
+          <h2 className="text-4xl sm:text-5xl font-serif font-bold mt-3">
+            Shop By <span className="gold-gradient-text italic font-normal">Category</span>
           </h2>
+          <div className="w-12 h-[1px] bg-gold-400/50 mx-auto mt-6" />
         </motion.div>
 
-        {/* Category Cards – navigate directly to Collection page */}
+        {/* Category Cards – 10 columns wrap cleanly */}
         <motion.div
           variants={container}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
         >
           {categories.map((cat) => (
             <motion.div key={cat.id} variants={itemAnim}>
               <Link
                 to={`/collection?category=${cat.id}`}
-                className="group block relative overflow-hidden rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-all h-64"
+                className="group block relative overflow-hidden rounded-2xl bg-zinc-950 border border-zinc-900/60 hover:border-gold-400/40 hover:shadow-xl hover:shadow-gold-500/5 transition-all duration-500 h-72"
               >
-                <img
-                  src={cat.image}
-                  alt={cat.name}
-                  className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="text-sm font-semibold tracking-wider text-zinc-100">{cat.name}</h3>
-                  <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{cat.description}</p>
+                {/* Scale Image */}
+                <div className="absolute inset-0 w-full h-full overflow-hidden">
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="w-full h-full object-cover opacity-50 group-hover:opacity-75 group-hover:scale-110 transition-all duration-1000 ease-out"
+                    loading="lazy"
+                  />
+                </div>
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent" />
+                
+                {/* Text content */}
+                <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
+                  <h3 className="text-sm font-semibold tracking-wider text-zinc-100 group-hover:text-gold-400 transition-colors duration-300 uppercase">
+                    {cat.name}
+                  </h3>
+                  <div className="w-6 h-[1px] bg-gold-400/40 mt-2.5 group-hover:w-12 transition-all duration-500" />
+                  <p className="text-[11px] text-zinc-400 mt-2 opacity-0 group-hover:opacity-100 line-clamp-2 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0 font-light">
+                    {cat.description}
+                  </p>
                 </div>
               </Link>
             </motion.div>

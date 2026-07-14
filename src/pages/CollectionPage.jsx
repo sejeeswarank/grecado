@@ -1,85 +1,79 @@
-import { useState, useMemo } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, X, MessageCircle, RotateCcw } from "lucide-react";
+import { Search, ChevronDown, RotateCcw, Heart, SlidersHorizontal, Grid, List, Sparkles } from "lucide-react";
 import { products } from "../data/products";
 import { categories } from "../data/categories";
 
-// ─── Per-category sizes ───────────────────────────────────────────────────────
-const SIZES = {
-  shirts: ["S", "M", "L", "XL", "XXL"],
-  pants: ["28", "30", "32", "34", "36", "38"],
-  "coat-suits": ["36", "38", "40", "42", "44"],
-  shoes: ["6", "7", "8", "9", "10", "11"],
-};
+const SIZES_FILTER = ["XS", "S", "M", "L", "XL", "XXL", "28", "30", "32", "34", "36", "38", "6", "7", "8", "9", "10", "11"];
 
-// ─── Per-category garment specs ───────────────────────────────────────────────
-const CATEGORY_SPECS = {
-  shirts: [
-    "100% Long-Staple Brushed Cotton",
-    "Medium-weight thermal weave (180 GSM)",
-    "Dual chest button-flap pockets",
-    "Reinforced flat-felled seams",
-    "Pre-shrunk to maintain fit",
-  ],
-  pants: [
-    "Premium stretch cotton blend",
-    "Tapered slim-fit silhouette",
-    "Reinforced double-stitched seams",
-    "YKK zipper with button closure",
-    "Deep front and back pockets",
-  ],
-  "coat-suits": [
-    "Pure wool composition",
-    "Full canvas construction",
-    "Surgeon's cuffs with working buttonholes",
-    "Hand-padded lapels",
-    "Fully lined with bemberg lining",
-  ],
-  shoes: [
-    "Genuine full-grain leather upper",
-    "Goodyear welted construction",
-    "Leather insole with cushioning",
-    "Rubber outsole for durability",
-    "Hand-stitched detailing",
-  ],
-};
-
-// ─── Per-category descriptions ────────────────────────────────────────────────
-const CATEGORY_DESCRIPTIONS = {
-  shirts:
-    "Crafted from premium long-staple cotton, this shirt offers exceptional softness and a refined finish. Designed for the modern gentleman who values both style and everyday comfort.",
-  pants:
-    "Premium quality trousers built for both style and durability. Tailored for a clean, modern silhouette that transitions seamlessly from casual to formal occasions.",
-  "coat-suits":
-    "A masterpiece of tailoring excellence. Constructed with full canvas for superior drape and longevity — every stitch reflects our commitment to sartorial craftsmanship.",
-  shoes:
-    "Handcrafted with genuine full-grain leather and precision finishing. Built to last a lifetime while maintaining elegant style through every occasion.",
-};
-
-const ITEMS_PER_PAGE = 12;
-
-function getCategoryLabel(id) {
-  const cat = categories.find((c) => c.id === id);
-  return cat ? cat.name : id.replace(/-/g, " ").toUpperCase();
-}
+const COLOR_METADATA = [
+  { name: "White", value: "#FFFFFF" },
+  { name: "Black", value: "#0B0B0B" },
+  { name: "Blue", value: "#2B5EA7" },
+  { name: "Navy", value: "#1F305E" },
+  { name: "Grey", value: "#4A4A4A" },
+  { name: "Olive", value: "#4E5B31" },
+  { name: "Brown", value: "#7B4F2E" },
+  { name: "Beige", value: "#D4B896" },
+  { name: "Maroon", value: "#800000" },
+  { name: "Green", value: "#228B22" }
+];
 
 export default function CollectionPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  // ─── Filter States ─────────────────────────────────────────────────────────
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("default");
-  const [page, setPage] = useState(1);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
+  const [maxPrice, setMaxPrice] = useState(1500);
+  const [showWishlistedOnly, setShowWishlistedOnly] = useState(false);
+  const [wishlist, setWishlist] = useState(() => {
+    try {
+      const saved = localStorage.getItem("grecado_wishlist");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // ─── UI & Skeleton States ──────────────────────────────────────────────────
+  const [loading, setLoading] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const activeCategory = searchParams.get("category") || "all";
 
-  // ─── Filtering + sorting ────────────────────────────────────────────────────
+  // Handle wishlist toggle
+  const toggleWishlist = (e, id) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setWishlist((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      localStorage.setItem("grecado_wishlist", JSON.stringify(next));
+      return next;
+    });
+  };
+
+  // Simulate premium skeleton loading on filter/category changes
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), 450);
+    return () => clearTimeout(timer);
+  }, [activeCategory, search, sort, selectedSize, selectedColor, maxPrice, showWishlistedOnly]);
+
+  // ─── Filtering & Sorting Logic ─────────────────────────────────────────────
   const filtered = useMemo(() => {
     let result = [...products];
+
+    // Category
     if (activeCategory !== "all") {
       result = result.filter((p) => p.category === activeCategory);
     }
+
+    // Search query
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -89,13 +83,41 @@ export default function CollectionPage() {
           p.category.toLowerCase().includes(q)
       );
     }
-    if (sort === "price-asc") result.sort((a, b) => a.price - b.price);
-    if (sort === "price-desc") result.sort((a, b) => b.price - a.price);
-    return result;
-  }, [activeCategory, search, sort]);
 
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+    // Size filter
+    if (selectedSize) {
+      result = result.filter((p) => p.sizes?.includes(selectedSize));
+    }
+
+    // Color filter
+    if (selectedColor) {
+      result = result.filter(
+        (p) =>
+          p.color.toLowerCase().includes(selectedColor.toLowerCase()) ||
+          p.colors?.some((c) => c.toLowerCase().includes(selectedColor.toLowerCase()))
+      );
+    }
+
+    // Price filter
+    result = result.filter((p) => p.price <= maxPrice);
+
+    // Wishlist only
+    if (showWishlistedOnly) {
+      result = result.filter((p) => wishlist.includes(p.id));
+    }
+
+    // Sorting
+    if (sort === "price-asc") {
+      result.sort((a, b) => a.price - b.price);
+    } else if (sort === "price-desc") {
+      result.sort((a, b) => b.price - a.price);
+    } else if (sort === "newest") {
+      // simulate newest by ordering by id desc
+      result.sort((a, b) => b.id.localeCompare(a.id));
+    }
+
+    return result;
+  }, [activeCategory, search, selectedSize, selectedColor, maxPrice, showWishlistedOnly, wishlist, sort]);
 
   const categoryCounts = useMemo(() => {
     const counts = { all: products.length };
@@ -105,296 +127,331 @@ export default function CollectionPage() {
     return counts;
   }, []);
 
-  // ─── Handlers ───────────────────────────────────────────────────────────────
   const handleCategoryChange = (val) => {
     setSearchParams(val === "all" ? {} : { category: val });
-    setPage(1);
   };
 
-  const openProduct = (product) => {
-    setSelectedProduct(product);
-    setSelectedSize(null);
+  const handleResetFilters = () => {
+    setSearch("");
+    setSort("default");
+    setSelectedSize("");
+    setSelectedColor("");
+    setMaxPrice(1500);
+    setShowWishlistedOnly(false);
+    setSearchParams({});
   };
-
-  const closeProduct = () => {
-    setSelectedProduct(null);
-    setSelectedSize(null);
-  };
-
-  // ─── Modal derived values ────────────────────────────────────────────────────
-  const sizes = selectedProduct
-    ? SIZES[selectedProduct.category] || ["S", "M", "L", "XL", "XXL"]
-    : [];
-  const specs = selectedProduct
-    ? CATEGORY_SPECS[selectedProduct.category] || []
-    : [];
-  const description = selectedProduct
-    ? CATEGORY_DESCRIPTIONS[selectedProduct.category] || ""
-    : "";
-  const whatsappText = selectedProduct
-    ? encodeURIComponent(
-        `Hello Grecado! I am interested in purchasing the following item:\n\n` +
-          `• *Garment:* ${selectedProduct.name}\n` +
-          `• *Category:* ${getCategoryLabel(selectedProduct.category)}\n` +
-          `• *Color:* ${selectedProduct.color}\n` +
-          `• *Price:* ₹${selectedProduct.price.toLocaleString("en-IN")}\n` +
-          `• *Requested Size:* ${selectedSize || "[Please specify size]"}\n\n` +
-          `Please let me know if this is currently available in stock. Thank you!`
-      )
-    : "";
 
   return (
-    <main className="min-h-screen pt-24 pb-20 bg-zinc-950 text-zinc-100">
-      {/* ─── Page Header ─────────────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+    <main className="min-h-screen pt-24 pb-20 bg-[#0B0B0B] text-zinc-100 selection:bg-amber-500/30 selection:text-amber-400">
+      {/* ─── Breadcrumbs & Header ────────────────────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-6">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-gold-400 transition-colors uppercase tracking-widest"
+            className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-gold-400 transition-colors uppercase tracking-[0.2em]"
           >
             ← Back to Home
           </Link>
-          <div className="mt-8 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
             <div>
-              <h1 className="text-5xl sm:text-6xl font-serif font-bold leading-[1.1]">
-                The Grecado
-                <br />
-                <span className="italic gold-gradient-text">Catalogue</span>
+              <span className="text-[10px] tracking-[0.35em] text-gold-400 uppercase font-semibold flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-gold-400" /> Grecado Atelier Collection
+              </span>
+              <h1 className="text-4xl sm:text-5xl font-serif font-bold mt-2 tracking-tight">
+                Premium <span className="gold-gradient-text italic">Catalogue</span>
               </h1>
             </div>
-            <p className="text-sm text-zinc-400 max-w-xs leading-relaxed">
-              Browse our complete collection of uncompromising garments.
-              Woven from premium fibres and custom tailored for your absolute
-              comfort.
+            <p className="text-sm text-zinc-400 max-w-sm leading-relaxed font-sans font-light">
+              Explore meticulously tailored menswear designed for comfort, luxury finish, and clean proportions.
             </p>
           </div>
         </motion.div>
       </div>
 
-      {/* ─── Body: Sidebar + Grid ─────────────────────────────────────────────── */}
+      {/* ─── Layout: Sidebar + Grid ───────────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex gap-10">
-          {/* ── Sidebar (desktop) ──────────────────────────────────────────── */}
-          <aside className="hidden lg:block w-48 flex-shrink-0">
+        <div className="flex flex-col lg:flex-row gap-10">
+          
+          {/* ── Desktop Sidebar ── */}
+          <aside className="hidden lg:block w-64 flex-shrink-0 space-y-8">
             {/* Search */}
-            <div className="mb-8">
-              <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600 mb-2.5">
-                Search
-              </p>
+            <div className="border-b border-zinc-900 pb-6">
+              <h3 className="text-xs font-semibold tracking-[0.2em] uppercase text-zinc-400 mb-3">Search</h3>
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-600" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
                 <input
                   type="text"
+                  placeholder="Find garments..."
                   value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full pl-7 pr-3 py-2 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-300 placeholder-zinc-700 focus:outline-none focus:border-zinc-600 transition-colors"
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-zinc-900/60 border border-zinc-800 rounded-lg text-xs text-zinc-300 placeholder-zinc-700 focus:outline-none focus:border-gold-400/40 transition-colors"
                 />
               </div>
             </div>
 
             {/* Categories */}
-            <div>
-              <div className="flex items-center justify-between mb-2.5">
-                <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600">
-                  Categories
-                </p>
-                {activeCategory !== "all" && (
-                  <button
-                    onClick={() => handleCategoryChange("all")}
-                    className="text-[10px] text-zinc-500 hover:text-gold-400 transition-colors flex items-center gap-1 cursor-pointer"
-                  >
-                    <RotateCcw className="w-2.5 h-2.5" /> Reset
-                  </button>
-                )}
+            <div className="border-b border-zinc-900 pb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold tracking-[0.2em] uppercase text-zinc-400">Categories</h3>
               </div>
-
-              <ul className="space-y-0.5">
-                {/* ALL */}
+              <ul className="space-y-1">
                 <li>
                   <button
                     onClick={() => handleCategoryChange("all")}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-md text-xs font-semibold tracking-wider uppercase transition-all cursor-pointer ${
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs tracking-wider uppercase transition-all cursor-pointer ${
                       activeCategory === "all"
-                        ? "bg-gold-400/10 text-zinc-100 border-l-2 border-gold-400 pl-2.5"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                        ? "bg-gold-500/10 text-gold-400 font-semibold"
+                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/40"
                     }`}
                   >
-                    <span>All</span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded font-normal ${
-                        activeCategory === "all"
-                          ? "bg-gold-400/20 text-gold-400"
-                          : "bg-zinc-800 text-zinc-500"
-                      }`}
-                    >
-                      {categoryCounts.all}
-                    </span>
+                    <span>All Collections</span>
+                    <span className="text-[10px] opacity-60 font-mono">{categoryCounts.all}</span>
                   </button>
                 </li>
-
                 {categories.map((cat) => (
                   <li key={cat.id}>
                     <button
                       onClick={() => handleCategoryChange(cat.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-md text-xs font-semibold tracking-wider uppercase transition-all cursor-pointer ${
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs tracking-wider uppercase transition-all cursor-pointer ${
                         activeCategory === cat.id
-                          ? "bg-gold-400/10 text-zinc-100 border-l-2 border-gold-400 pl-2.5"
-                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900"
+                          ? "bg-gold-500/10 text-gold-400 font-semibold"
+                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/40"
                       }`}
                     >
                       <span>{cat.name}</span>
-                      <span
-                        className={`text-[10px] px-1.5 py-0.5 rounded font-normal ${
-                          activeCategory === cat.id
-                            ? "bg-gold-400/20 text-gold-400"
-                            : "bg-zinc-800 text-zinc-500"
-                        }`}
-                      >
-                        {categoryCounts[cat.id] || 0}
-                      </span>
+                      <span className="text-[10px] opacity-60 font-mono">{categoryCounts[cat.id] || 0}</span>
                     </button>
                   </li>
                 ))}
               </ul>
             </div>
-          </aside>
 
-          {/* ── Main content ────────────────────────────────────────────────── */}
-          <div className="flex-1 min-w-0">
-            {/* Mobile filters */}
-            <div className="lg:hidden flex gap-2 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full pl-10 pr-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-gold-500/50 transition-colors"
-                />
+            {/* Filter by Price */}
+            <div className="border-b border-zinc-900 pb-6">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-xs font-semibold tracking-[0.2em] uppercase text-zinc-400">Max Price</h3>
+                <span className="text-xs text-gold-400 font-mono font-bold">₹{maxPrice}</span>
               </div>
-              <div className="relative">
-                <select
-                  value={activeCategory}
-                  onChange={(e) => handleCategoryChange(e.target.value)}
-                  className="appearance-none pl-3 pr-8 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-300 focus:outline-none focus:border-gold-500/50 transition-colors"
-                >
-                  <option value="all">All</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+              <input
+                type="range"
+                min="200"
+                max="1500"
+                step="50"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                className="w-full accent-gold-400 bg-zinc-900 h-1 rounded-lg cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-zinc-600 mt-2 font-mono">
+                <span>₹200</span>
+                <span>₹1,500</span>
               </div>
             </div>
 
-            {/* Toolbar: count + sort */}
-            <div className="flex items-center justify-between mb-6">
-              <p className="text-sm text-zinc-500">
-                Showing{" "}
-                <span className="text-zinc-200 font-medium">
-                  {paginated.length}
-                </span>{" "}
-                of{" "}
-                <span className="text-zinc-200 font-medium">
-                  {filtered.length}
-                </span>{" "}
-                <span className="text-gold-400/70">garments</span>
-              </p>
-              <div className="relative">
+            {/* Filter by Size */}
+            <div className="border-b border-zinc-900 pb-6">
+              <h3 className="text-xs font-semibold tracking-[0.2em] uppercase text-zinc-400 mb-3">Filter by Size</h3>
+              <div className="flex flex-wrap gap-1.5">
+                {SIZES_FILTER.map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setSelectedSize(selectedSize === size ? "" : size)}
+                    className={`px-2.5 py-1.5 rounded text-[10px] font-mono font-semibold tracking-wider transition-all cursor-pointer border ${
+                      selectedSize === size
+                        ? "bg-gold-400 text-zinc-950 border-gold-400 shadow-md shadow-gold-500/10"
+                        : "bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Filter by Color */}
+            <div className="border-b border-zinc-900 pb-6">
+              <h3 className="text-xs font-semibold tracking-[0.2em] uppercase text-zinc-400 mb-3">Filter by Color</h3>
+              <div className="flex flex-wrap gap-2">
+                {COLOR_METADATA.map((col) => (
+                  <button
+                    key={col.name}
+                    title={col.name}
+                    onClick={() => setSelectedColor(selectedColor === col.name ? "" : col.name)}
+                    className={`w-6 h-6 rounded-full border transition-all cursor-pointer flex items-center justify-center relative ${
+                      selectedColor === col.name
+                        ? "border-gold-400 ring-2 ring-gold-400/30 scale-110"
+                        : "border-zinc-800 hover:border-zinc-600"
+                    }`}
+                    style={{ backgroundColor: col.value }}
+                  >
+                    {selectedColor === col.name && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Wishlisted only & Reset */}
+            <div className="space-y-3 pt-2">
+              <button
+                onClick={() => setShowWishlistedOnly((w) => !w)}
+                className={`w-full py-2.5 px-3 rounded-lg border text-xs font-semibold tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  showWishlistedOnly
+                    ? "bg-red-500/10 border-red-500/30 text-red-400"
+                    : "border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                }`}
+              >
+                <Heart className={`w-3.5 h-3.5 ${showWishlistedOnly ? "fill-red-400" : ""}`} />
+                {showWishlistedOnly ? "Show All Products" : "View Wishlist"}
+              </button>
+
+              <button
+                onClick={handleResetFilters}
+                className="w-full py-2.5 px-3 rounded-lg border border-dashed border-zinc-800 text-zinc-500 hover:text-gold-400 hover:border-zinc-700 text-xs font-semibold tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reset All Filters
+              </button>
+            </div>
+          </aside>
+
+          {/* ── Toolbar & Main Grid Area ── */}
+          <div className="flex-1 min-w-0">
+            {/* Mobile Filter buttons */}
+            <div className="lg:hidden flex items-center justify-between gap-3 mb-6 bg-zinc-900/40 p-3 rounded-xl border border-zinc-900">
+              <button
+                onClick={() => setMobileFiltersOpen(true)}
+                className="flex items-center gap-2 text-xs font-semibold text-zinc-300 hover:text-gold-400 transition-colors"
+              >
+                <SlidersHorizontal className="w-4 h-4 text-gold-400" />
+                Filters
+              </button>
+              <div className="flex gap-2">
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
-                  className="appearance-none pl-3 pr-8 py-1.5 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-300 focus:outline-none focus:border-zinc-600 transition-colors"
+                  className="appearance-none pl-3 pr-8 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-300 focus:outline-none"
                 >
                   <option value="default">Sort: Recommended</option>
+                  <option value="newest">Newest First</option>
                   <option value="price-asc">Price: Low to High</option>
                   <option value="price-desc">Price: High to Low</option>
                 </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 pointer-events-none" />
               </div>
             </div>
 
-            {/* Product Grid */}
-            {paginated.length === 0 ? (
-              <div className="text-center py-24 text-zinc-600">
-                No products found.
+            {/* Desktop Top Toolbar */}
+            <div className="hidden lg:flex items-center justify-between mb-8 border-b border-zinc-900 pb-4">
+              <p className="text-xs text-zinc-500 font-light">
+                Showing <span className="text-zinc-200 font-medium">{filtered.length}</span> premium products
+              </p>
+              <div className="flex items-center gap-4">
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                  className="appearance-none pl-3 pr-8 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-300 focus:outline-none focus:border-zinc-700 transition-colors"
+                >
+                  <option value="default">Sort: Recommended</option>
+                  <option value="newest">Newest First</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Wishlist Header Indicator */}
+            {showWishlistedOnly && (
+              <div className="mb-6 p-4 rounded-xl bg-red-500/5 border border-red-500/10 flex items-center justify-between">
+                <span className="text-xs text-red-400 font-semibold tracking-wide uppercase flex items-center gap-1.5">
+                  <Heart className="w-3.5 h-3.5 fill-red-400" /> Wishlist Filter Active
+                </span>
+                <button
+                  onClick={() => setShowWishlistedOnly(false)}
+                  className="text-xs text-zinc-400 hover:text-zinc-200"
+                >
+                  Show All
+                </button>
+              </div>
+            )}
+
+            {/* Loading Skeleton */}
+            {loading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="animate-pulse flex flex-col space-y-4">
+                    <div className="aspect-[3/4] bg-zinc-900 rounded-2xl border border-zinc-800/40" />
+                    <div className="h-4 bg-zinc-900 rounded w-2/3" />
+                    <div className="h-4 bg-zinc-900 rounded w-1/3" />
+                  </div>
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-28 border border-zinc-900/60 rounded-2xl bg-zinc-900/10">
+                <SlidersHorizontal className="w-8 h-8 text-zinc-700 mx-auto mb-3" />
+                <p className="text-sm text-zinc-500 font-light">No premium garments match your selected filters.</p>
+                <button
+                  onClick={handleResetFilters}
+                  className="mt-4 px-4 py-2 border border-zinc-800 text-zinc-400 hover:text-gold-400 hover:border-zinc-700 text-xs font-semibold rounded-lg transition-colors"
+                >
+                  Clear Filters
+                </button>
               </div>
             ) : (
               <motion.div
+                layout
                 initial="hidden"
                 animate="show"
-                key={activeCategory + search + sort + page}
-                variants={{
-                  hidden: {},
-                  show: { transition: { staggerChildren: 0.05 } },
-                }}
-                className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"
+                className="grid grid-cols-2 md:grid-cols-3 gap-6"
               >
-                {paginated.map((product) => {
-                  const cardSizes =
-                    SIZES[product.category] || ["S", "M", "L", "XL", "XXL"];
+                {filtered.map((product) => {
+                  const isWishlisted = wishlist.includes(product.id);
                   return (
                     <motion.div
+                      layout
                       key={product.id}
-                      variants={{
-                        hidden: { opacity: 0, y: 18 },
-                        show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
-                      }}
-                      className="group bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-700 transition-all cursor-pointer"
-                      onClick={() => openProduct(product)}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="group relative flex flex-col bg-zinc-900/20 border border-zinc-900 hover:border-zinc-800/80 rounded-2xl overflow-hidden transition-all duration-500 cursor-pointer"
+                      onClick={() => navigate(`/product/${product.id}`)}
                     >
-                      {/* Image + category badge */}
-                      <div className="relative">
-                        <span className="absolute top-3 left-3 z-10 text-[9px] font-bold tracking-wider uppercase bg-zinc-950/75 backdrop-blur-sm text-zinc-300 px-2 py-1 rounded">
-                          {getCategoryLabel(product.category)}
+                      {/* Image Frame */}
+                      <div className="relative aspect-[3/4] overflow-hidden bg-zinc-900">
+                        {/* Lazy-loaded category badge */}
+                        <span className="absolute top-3 left-3 z-10 text-[9px] font-bold tracking-widest uppercase bg-zinc-950/80 backdrop-blur-sm text-gold-400 px-2 py-0.5 rounded border border-gold-400/20">
+                          {categories.find((c) => c.id === product.category)?.name ?? product.category}
                         </span>
-                        <div className="aspect-[4/3] overflow-hidden bg-zinc-800">
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            loading="lazy"
-                          />
-                        </div>
+
+                        {/* Wishlist Heart */}
+                        <button
+                          onClick={(e) => toggleWishlist(e, product.id)}
+                          className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-zinc-950/80 backdrop-blur-sm flex items-center justify-center text-zinc-500 hover:text-red-400 hover:scale-110 active:scale-95 transition-all"
+                        >
+                          <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
+                        </button>
+
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700 ease-out"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </div>
 
-                      {/* Card body */}
-                      <div className="p-4">
-                        {/* Name + price */}
-                        <div className="flex items-start justify-between gap-2">
-                          <h3 className="text-sm font-semibold text-zinc-100 leading-snug">
+                      {/* Content Panel */}
+                      <div className="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                          <p className="text-[9px] font-semibold tracking-wider text-zinc-500 uppercase">{product.color}</p>
+                          <h3 className="text-xs font-semibold text-zinc-100 leading-snug line-clamp-1 mt-1 group-hover:text-gold-400 transition-colors">
                             {product.name}
                           </h3>
-                          <span className="text-sm font-bold text-zinc-100 whitespace-nowrap">
+                        </div>
+                        <div className="flex items-baseline justify-between mt-3.5">
+                          <span className="text-xs font-bold text-zinc-100">
                             ₹{product.price.toLocaleString("en-IN")}
                           </span>
-                        </div>
-
-                        {/* Color dot */}
-                        <div className="flex items-center gap-1.5 mt-2">
-                          <span className="w-2 h-2 rounded-full bg-gold-400/60 flex-shrink-0" />
-                          <span className="text-xs text-zinc-500">
-                            {product.color}
-                          </span>
-                        </div>
-
-                        {/* Sizes + Inquire row */}
-                        <div className="flex items-center justify-between mt-3">
-                          <p className="text-[10px] text-zinc-600">
-                            <span className="mr-1.5">Sizes:</span>
-                            {cardSizes.join("  ")}
-                          </p>
-                          <span className="text-[10px] font-medium text-green-400 flex items-center gap-1">
-                            Inquire ↗
+                          <span className="text-[10px] text-zinc-500 font-light hover:text-gold-400 transition-colors flex items-center gap-0.5">
+                            Order ↗
                           </span>
                         </div>
                       </div>
@@ -403,189 +460,161 @@ export default function CollectionPage() {
                 })}
               </motion.div>
             )}
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-14">
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setPage(i + 1)}
-                    className={`w-10 h-10 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                      page === i + 1
-                        ? "bg-gold-500/20 text-gold-400 border border-gold-500/30"
-                        : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700"
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
 
-      {/* ─── Product Modal ────────────────────────────────────────────────────── */}
+      {/* ── Mobile Filters Slide-Over ── */}
       <AnimatePresence>
-        {selectedProduct && (
-          <motion.div
-            key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={closeProduct}
-          >
+        {mobileFiltersOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden flex">
+            {/* Backdrop */}
             <motion.div
-              key="modal"
-              initial={{ opacity: 0, scale: 0.96, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 16 }}
-              transition={{ duration: 0.25 }}
-              className="bg-zinc-900 rounded-2xl w-full max-w-2xl overflow-hidden flex max-h-[90vh] shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileFiltersOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            />
+
+            {/* Content box */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className="relative w-full max-w-xs bg-[#0B0B0B] border-r border-zinc-900 p-6 overflow-y-auto flex flex-col"
             >
-              {/* Left: Image */}
-              <div className="relative w-[44%] flex-shrink-0 bg-zinc-800">
-                <img
-                  src={selectedProduct.image}
-                  alt={selectedProduct.name}
-                  className="w-full h-full object-cover"
-                />
-                {/* Category badge – bottom left of image */}
-                <div className="absolute bottom-3 left-3">
-                  <span className="text-[9px] font-bold tracking-wider uppercase bg-zinc-950/90 text-zinc-300 px-2.5 py-1 rounded">
-                    {getCategoryLabel(selectedProduct.category)}
-                  </span>
+              <div className="flex items-center justify-between pb-4 border-b border-zinc-900 mb-6">
+                <span className="text-sm font-semibold tracking-wider uppercase text-zinc-100">Collection Filters</span>
+                <button
+                  onClick={() => setMobileFiltersOpen(false)}
+                  className="text-xs text-zinc-500 hover:text-zinc-200"
+                >
+                  Close ✕
+                </button>
+              </div>
+
+              {/* Mobile Search */}
+              <div className="border-b border-zinc-900 pb-5 mb-5">
+                <h4 className="text-xs font-semibold tracking-wider uppercase text-zinc-400 mb-2.5">Search</h4>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                  <input
+                    type="text"
+                    placeholder="Find garments..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-300 placeholder-zinc-700"
+                  />
                 </div>
               </div>
 
-              {/* Right: Detail panel */}
-              <div className="flex-1 overflow-y-auto flex flex-col">
-                {/* Close button */}
-                <div className="flex justify-end p-4 pb-0">
-                  <button
-                    onClick={closeProduct}
-                    className="w-8 h-8 rounded-full border border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-zinc-100 hover:border-zinc-500 transition-all cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
+              {/* Mobile Categories */}
+              <div className="border-b border-zinc-900 pb-5 mb-5">
+                <h4 className="text-xs font-semibold tracking-wider uppercase text-zinc-400 mb-2.5">Categories</h4>
+                <select
+                  value={activeCategory}
+                  onChange={(e) => {
+                    handleCategoryChange(e.target.value);
+                    setMobileFiltersOpen(false);
+                  }}
+                  className="w-full pl-3 pr-8 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-300"
+                >
+                  <option value="all">All Collections</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                <div className="px-6 pb-6 flex flex-col gap-4">
-                  {/* Tag row */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-semibold tracking-[0.18em] uppercase text-zinc-500">
-                      Premium Design
-                    </span>
-                    <span className="text-zinc-700">•</span>
-                    <span className="text-[9px] font-semibold tracking-[0.18em] uppercase text-gold-400/80">
-                      {selectedProduct.color}
-                    </span>
-                  </div>
-
-                  {/* Name */}
-                  <h2 className="text-xl font-serif font-bold text-zinc-100 leading-snug">
-                    {selectedProduct.name}
-                  </h2>
-
-                  {/* Price */}
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-zinc-100">
-                      ₹{selectedProduct.price.toLocaleString("en-IN")}
-                    </span>
-                    <span className="text-[11px] text-zinc-600">
-                      Inclusive of all taxes
-                    </span>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-xs text-zinc-400 leading-relaxed">
-                    {description}
-                  </p>
-
-                  {/* Size selector */}
-                  <div>
-                    <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-zinc-500 mb-2">
-                      Select Size
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {sizes.map((size) => (
-                        <button
-                          key={size}
-                          onClick={() => setSelectedSize(size)}
-                          className={`px-3.5 py-1.5 rounded border text-xs font-semibold transition-all cursor-pointer ${
-                            selectedSize === size
-                              ? "bg-zinc-100 border-zinc-100 text-zinc-900"
-                              : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
-                          }`}
-                        >
-                          {size}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Garment specs */}
-                  <div>
-                    <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-zinc-500 mb-2">
-                      Garment Specifications
-                    </p>
-                    <ul className="space-y-1.5">
-                      {specs.map((spec, i) => (
-                        <li
-                          key={i}
-                          className="flex items-start gap-2 text-xs text-zinc-400"
-                        >
-                          <span className="text-green-400 mt-0.5 flex-shrink-0 font-bold">
-                            ✓
-                          </span>
-                          {spec}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* WhatsApp CTA */}
-                  <div>
-                    <a
-                      href={`https://wa.me/917010200940?text=${whatsappText}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-green-600 hover:bg-green-500 text-white text-sm font-bold tracking-wide rounded-xl transition-all"
+              {/* Mobile Sizes */}
+              <div className="border-b border-zinc-900 pb-5 mb-5">
+                <h4 className="text-xs font-semibold tracking-wider uppercase text-zinc-400 mb-2.5">Sizes</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {SIZES_FILTER.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(selectedSize === size ? "" : size)}
+                      className={`px-2.5 py-1.5 rounded text-[10px] font-mono font-semibold tracking-wider transition-all cursor-pointer border ${
+                        selectedSize === size
+                          ? "bg-gold-400 text-zinc-950 border-gold-400"
+                          : "bg-zinc-900 border-zinc-800 text-zinc-400"
+                      }`}
                     >
-                      <MessageCircle className="w-4 h-4" />
-                      Inquire &amp; Chat on WhatsApp
-                    </a>
-                    <p className="text-[10px] text-zinc-600 text-center mt-2 leading-relaxed">
-                      Sending product photo link, selected size, and price
-                      automatically to store owner
-                    </p>
-                  </div>
-
-                  {/* Custom size */}
-                  <div className="flex items-center justify-center gap-1.5 pb-1">
-                    <MessageCircle className="w-3 h-3 text-zinc-600" />
-                    <span className="text-xs text-zinc-600">
-                      Need a custom size?{" "}
-                      <a
-                        href={`https://wa.me/917010200940?text=${encodeURIComponent(
-                          `Hello Grecado! I need a custom size for: ${selectedProduct.name} (${selectedProduct.color})`
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gold-400 hover:text-gold-300 transition-colors underline underline-offset-2"
-                      >
-                        Chat with us
-                      </a>
-                    </span>
-                  </div>
+                      {size}
+                    </button>
+                  ))}
                 </div>
+              </div>
+
+              {/* Mobile Colors */}
+              <div className="border-b border-zinc-900 pb-5 mb-5">
+                <h4 className="text-xs font-semibold tracking-wider uppercase text-zinc-400 mb-2.5">Colors</h4>
+                <div className="flex flex-wrap gap-2">
+                  {COLOR_METADATA.map((col) => (
+                    <button
+                      key={col.name}
+                      onClick={() => setSelectedColor(selectedColor === col.name ? "" : col.name)}
+                      className={`w-6 h-6 rounded-full border transition-all cursor-pointer flex items-center justify-center ${
+                        selectedColor === col.name
+                          ? "border-gold-400 ring-2 ring-gold-400/30 scale-110"
+                          : "border-zinc-800"
+                      }`}
+                      style={{ backgroundColor: col.value }}
+                    >
+                      {selectedColor === col.name && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mobile Max Price */}
+              <div className="border-b border-zinc-900 pb-5 mb-5">
+                <div className="flex justify-between items-center mb-2.5">
+                  <h4 className="text-xs font-semibold tracking-wider uppercase text-zinc-400">Max Price</h4>
+                  <span className="text-xs text-gold-400 font-mono font-bold">₹{maxPrice}</span>
+                </div>
+                <input
+                  type="range"
+                  min="200"
+                  max="1500"
+                  step="50"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(Number(e.target.value))}
+                  className="w-full accent-gold-400 bg-zinc-900 h-1 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Mobile buttons */}
+              <div className="mt-auto space-y-2 pt-4">
+                <button
+                  onClick={() => setShowWishlistedOnly((w) => !w)}
+                  className={`w-full py-2.5 px-3 rounded-lg border text-xs font-semibold tracking-wider transition-all flex items-center justify-center gap-2 ${
+                    showWishlistedOnly
+                      ? "bg-red-500/10 border-red-500/30 text-red-400"
+                      : "border-zinc-800 text-zinc-400"
+                  }`}
+                >
+                  <Heart className={`w-3.5 h-3.5 ${showWishlistedOnly ? "fill-red-400" : ""}`} />
+                  {showWishlistedOnly ? "Show All Products" : "View Wishlist"}
+                </button>
+                <button
+                  onClick={() => {
+                    handleResetFilters();
+                    setMobileFiltersOpen(false);
+                  }}
+                  className="w-full py-2.5 px-3 rounded-lg border border-dashed border-zinc-800 text-zinc-500 text-xs font-semibold tracking-wider transition-all"
+                >
+                  Reset All Filters
+                </button>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </main>

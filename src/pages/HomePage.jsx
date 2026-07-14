@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, MapPin, Clock, Phone } from "lucide-react";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { categories } from "../data/categories";
+import { products } from "../data/products";
 import { CONTACT } from "../data/constants";
 
 const shopImageFiles = [
@@ -106,6 +107,16 @@ const container = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } 
 const itemAnim = { hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 
 function Categories() {
+  const [activeCategory, setActiveCategory] = useState(null);
+
+  const filteredProducts = activeCategory
+    ? products.filter((p) => p.category === activeCategory)
+    : [];
+
+  const handleCategoryClick = (catId) => {
+    setActiveCategory((prev) => (prev === catId ? null : catId));
+  };
+
   return (
     <section id="categories" className="py-24 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -120,33 +131,105 @@ function Categories() {
             Shop By <span className="gold-gradient-text">Category</span>
           </h2>
         </motion.div>
+
+        {/* Category Cards – 4 columns */}
         <motion.div
           variants={container}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4"
         >
-          {categories.map((cat) => (
-            <motion.div key={cat.id} variants={itemAnim}>
-              <Link
-                to={`/collection?category=${cat.id}`}
-                className="group block relative overflow-hidden rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-all h-64"
-              >
-                <img
-                  src={cat.image}
-                  alt={cat.name}
-                  className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="text-sm font-semibold tracking-wider text-zinc-100">{cat.name}</h3>
-                  <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{cat.description}</p>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
+          {categories.map((cat) => {
+            const isActive = activeCategory === cat.id;
+            return (
+              <motion.div key={cat.id} variants={itemAnim}>
+                <button
+                  onClick={() => handleCategoryClick(cat.id)}
+                  className={`group w-full relative overflow-hidden rounded-xl border transition-all h-64 cursor-pointer ${
+                    isActive
+                      ? "border-gold-400 ring-2 ring-gold-400/40"
+                      : "bg-zinc-900 border-zinc-800 hover:border-zinc-700"
+                  }`}
+                >
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+                      isActive ? "opacity-80" : "opacity-60 group-hover:opacity-80"
+                    }`}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
+                  {isActive && (
+                    <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-gold-400 flex items-center justify-center">
+                      <span className="text-zinc-950 text-xs font-bold">✓</span>
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 text-left">
+                    <h3 className={`text-sm font-semibold tracking-wider ${
+                      isActive ? "text-gold-400" : "text-zinc-100"
+                    }`}>{cat.name}</h3>
+                    <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{cat.description}</p>
+                  </div>
+                </button>
+              </motion.div>
+            );
+          })}
         </motion.div>
+
+        {/* Inline Product Grid */}
+        {activeCategory && (
+          <motion.div
+            key={activeCategory}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mt-10"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-sm text-zinc-400">
+                <span className="text-zinc-200 font-medium">{filteredProducts.length}</span> products in{" "}
+                <span className="text-gold-400">{categories.find(c => c.id === activeCategory)?.name}</span>
+              </p>
+              <Link
+                to={`/collection?category=${activeCategory}`}
+                className="text-xs text-gold-400 hover:text-gold-300 tracking-wider uppercase transition-colors"
+              >
+                View All →
+              </Link>
+            </div>
+
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-16 text-zinc-500">
+                No products available in this category.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {filteredProducts.slice(0, 10).map((product) => (
+                  <Link
+                    key={product.id}
+                    to={`/collection?category=${activeCategory}`}
+                    className="group block bg-zinc-900/50 border border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-700 transition-all"
+                  >
+                    <div className="relative aspect-[3/4] overflow-hidden bg-zinc-800">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <div className="p-3">
+                      <h3 className="text-xs font-semibold text-zinc-200 leading-snug line-clamp-2">{product.name}</h3>
+                      <p className="text-xs text-zinc-500 mt-1">{product.color}</p>
+                      <p className="text-sm font-semibold text-zinc-100 mt-1.5">₹{product.price.toLocaleString("en-IN")}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
       </div>
     </section>
   );

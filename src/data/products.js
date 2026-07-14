@@ -189,7 +189,7 @@ export const products = [
     category: "shoes",
     price: 999,
     color: "Midnight Onyx Black",
-    image: "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=600&auto=format&fit=crop&q=80",
+    image: "https://m.media-amazon.com/images/I/61pl2z3217L._AC_UY1000_.jpg",
   },
   {
     id: "shoes-derby-1",
@@ -197,7 +197,7 @@ export const products = [
     category: "shoes",
     price: 999,
     color: "Heritage Cognac Brown",
-    image: "https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMXsLBSZ1QEF15VR9K8t9Vo44nnLSSwowwzaG_g9PAAg&s=10",
   },
   {
     id: "shoes-loafer-1",
@@ -205,7 +205,7 @@ export const products = [
     category: "shoes",
     price: 999,
     color: "Warm Tan",
-    image: "https://images.unsplash.com/photo-1599045249232-48b35eaa348e?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKJMaBU9suPB6xeu57GYXs5yWo-uCV6oTNLoPpDiofoQ&s=10",
   },
   {
     id: "shoes-chelsea-1",
@@ -213,7 +213,7 @@ export const products = [
     category: "shoes",
     price: 999,
     color: "Sand Suede",
-    image: "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3Vyy8_sFRONuwyTs6cFIVlo2WDZUo6k6fhAOSEAwKLg&s",
   },
   {
     id: "shoes-sneaker-1",
@@ -221,7 +221,7 @@ export const products = [
     category: "shoes",
     price: 999,
     color: "Alabaster White",
-    image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZ_CZXaaaPgJSUoBv4wHi7UEs6TmtWBikoUsLSebULCA&s=10",
   },
   {
     id: "shoes-monk-1",
@@ -229,7 +229,7 @@ export const products = [
     category: "shoes",
     price: 999,
     color: "Deep Espresso Brown",
-    image: "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSioVjXc_8MDCBHUlA7FYTyzo3RO2pC0DLDEiMVoPa8zA&s=10",
   },
   {
     id: "shoes-formal-1",
@@ -237,6 +237,6 @@ export const products = [
     category: "shoes",
     price: 999,
     color: "Classic Oxford Brown",
-    image: "https://images.unsplash.com/photo-1584735175315-9d5df23be620?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpyxa6pjG0QNTRR5KdxMNL9Gwxt_Hl-C8Ft_TuIFKgnQ&s=10",
   },
 ];

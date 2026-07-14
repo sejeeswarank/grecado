@@ -79,8 +79,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
             <Link to="/" className="flex items-center gap-3 group flex-shrink-0">
-              <img src="/shop_logo/logo.svg" alt="Grecado" className="h-8 w-auto transition-transform group-hover:scale-105" />
-              <span className="text-lg font-serif tracking-wider text-zinc-100 hidden sm:block">GRECADO</span>
+              <img src="/shop_logo/logo.svg" alt="Grecado" className="h-10 lg:h-14 w-auto transition-transform group-hover:scale-105" />
             </Link>
 
             <div className="hidden lg:flex items-center gap-6">

@@ -185,12 +185,6 @@ function Gallery() {
   const [fullscreen, setFullscreen] = useState(null);
 
   useEffect(() => {
-    if (fullscreen !== null) return;
-    const id = setInterval(() => setSlideIdx((p) => (p + 1) % galleryImages.length), 5000);
-    return () => clearInterval(id);
-  }, [fullscreen]);
-
-  useEffect(() => {
     if (fullscreen === null) return;
     const onKey = (e) => {
       if (e.key === "Escape") setFullscreen(null);
@@ -215,7 +209,7 @@ function Gallery() {
             Photo <span className="gold-gradient-text">Gallery</span>
           </h2>
         </motion.div>
-        <div className="relative overflow-hidden rounded-2xl bg-zinc-900">
+        <div className="relative overflow-hidden rounded-2xl bg-zinc-900 group/gallery">
           <div className="relative h-[400px] sm:h-[500px]">
             {galleryImages.map((url, i) => (
               <div
@@ -234,11 +228,38 @@ function Gallery() {
               </div>
             ))}
           </div>
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+
+          {/* Navigation Arrows for Gallery Slider */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setSlideIdx((p) => (p === 0 ? galleryImages.length - 1 : p - 1));
+            }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-zinc-950/60 hover:bg-zinc-950/90 text-zinc-300 hover:text-white transition-all border border-zinc-800 hover:border-zinc-700 cursor-pointer opacity-0 group-hover/gallery:opacity-100"
+            aria-label="Previous image"
+          >
+            <span className="text-2xl leading-none -translate-x-[1px]">‹</span>
+          </button>
+          
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setSlideIdx((p) => (p + 1) % galleryImages.length);
+            }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-zinc-950/60 hover:bg-zinc-950/90 text-zinc-300 hover:text-white transition-all border border-zinc-800 hover:border-zinc-700 cursor-pointer opacity-0 group-hover/gallery:opacity-100"
+            aria-label="Next image"
+          >
+            <span className="text-2xl leading-none translate-x-[1px]">›</span>
+          </button>
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
             {galleryImages.map((_, i) => (
               <button
                 key={i}
-                onClick={() => setSlideIdx(i)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSlideIdx(i);
+                }}
                 className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
                   i === slideIdx ? "bg-gold-400 w-6" : "bg-zinc-500/50 hover:bg-zinc-400"
                 }`}
@@ -253,25 +274,35 @@ function Gallery() {
           onClick={() => setFullscreen(null)}
         >
           <button
-            onClick={() => setFullscreen((p) => (p === 0 ? galleryImages.length - 1 : p - 1))}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white text-3xl z-10 cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              setFullscreen((p) => (p === 0 ? galleryImages.length - 1 : p - 1));
+            }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white text-4xl z-10 cursor-pointer w-12 h-12 flex items-center justify-center rounded-full bg-zinc-900/30 hover:bg-zinc-900/60 transition-colors"
           >
             ‹
           </button>
           <img
             src={galleryImages[fullscreen]}
             alt=""
-            className="max-w-[90vw] max-h-[90vh] object-contain"
+            className="max-w-[90vw] max-h-[90vh] object-contain cursor-default"
+            onClick={(e) => e.stopPropagation()}
           />
           <button
-            onClick={() => setFullscreen((p) => (p + 1) % galleryImages.length)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white text-3xl z-10 cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              setFullscreen((p) => (p + 1) % galleryImages.length);
+            }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white text-4xl z-10 cursor-pointer w-12 h-12 flex items-center justify-center rounded-full bg-zinc-900/30 hover:bg-zinc-900/60 transition-colors"
           >
             ›
           </button>
           <button
-            onClick={() => setFullscreen(null)}
-            className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl z-10 cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              setFullscreen(null);
+            }}
+            className="absolute top-4 right-4 text-white/70 hover:text-white text-3xl z-10 cursor-pointer w-12 h-12 flex items-center justify-center rounded-full bg-zinc-900/30 hover:bg-zinc-900/60 transition-colors"
           >
             ✕
           </button>

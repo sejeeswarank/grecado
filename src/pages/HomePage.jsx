@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, MapPin, Clock, Phone } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { categories } from "../data/categories";
 import { CONTACT } from "../data/constants";
 
@@ -184,6 +184,74 @@ function Gallery() {
   const [slideIdx, setSlideIdx] = useState(0);
   const [fullscreen, setFullscreen] = useState(null);
 
+  const minSwipeDistance = 50;
+
+  // Unified drag/swipe tracking using refs (works for both mouse and touch)
+  const dragStartX = useRef(null);
+  const isDragging = useRef(false);
+  const hasDragged = useRef(false);
+
+  const handleDragStart = (clientX) => {
+    dragStartX.current = clientX;
+    isDragging.current = true;
+    hasDragged.current = false;
+  };
+
+  const handleDragEnd = (clientX) => {
+    if (!isDragging.current || dragStartX.current === null) return;
+    const distance = dragStartX.current - clientX;
+    if (Math.abs(distance) > minSwipeDistance) {
+      hasDragged.current = true;
+      if (distance > 0) {
+        setSlideIdx((p) => (p + 1) % galleryImages.length);
+      } else {
+        setSlideIdx((p) => (p === 0 ? galleryImages.length - 1 : p - 1));
+      }
+    }
+    isDragging.current = false;
+    dragStartX.current = null;
+  };
+
+  // Mouse events (desktop drag)
+  const onMouseDown = (e) => handleDragStart(e.clientX);
+  const onMouseUp = (e) => handleDragEnd(e.clientX);
+
+  // Touch events (mobile swipe)
+  const onTouchStart = (e) => handleDragStart(e.targetTouches[0].clientX);
+  const onTouchEnd = (e) => handleDragEnd(e.changedTouches[0].clientX);
+
+  // Fullscreen drag/swipe support
+  const fsDragStartX = useRef(null);
+  const fsIsDragging = useRef(false);
+  const fsHasDragged = useRef(false);
+
+  const fsDragStart = (clientX) => {
+    fsDragStartX.current = clientX;
+    fsIsDragging.current = true;
+    fsHasDragged.current = false;
+  };
+
+  const fsDragEnd = (clientX, e) => {
+    if (!fsIsDragging.current || fsDragStartX.current === null) return;
+    const distance = fsDragStartX.current - clientX;
+    if (Math.abs(distance) > minSwipeDistance) {
+      fsHasDragged.current = true;
+      e.stopPropagation();
+      if (distance > 0) {
+        setFullscreen((p) => (p + 1) % galleryImages.length);
+      } else {
+        setFullscreen((p) => (p === 0 ? galleryImages.length - 1 : p - 1));
+      }
+    }
+    fsIsDragging.current = false;
+    fsDragStartX.current = null;
+  };
+
+  const onFsMouseDown = (e) => fsDragStart(e.clientX);
+  const onFsMouseUp = (e) => fsDragEnd(e.clientX, e);
+  const onFsTouchStart = (e) => fsDragStart(e.targetTouches[0].clientX);
+  const onFsTouchEnd = (e) => fsDragEnd(e.changedTouches[0].clientX, e);
+
   useEffect(() => {
     if (fullscreen === null) return;
     const onKey = (e) => {
@@ -209,21 +277,30 @@ function Gallery() {
             Photo <span className="gold-gradient-text">Gallery</span>
           </h2>
         </motion.div>
-        <div className="relative overflow-hidden rounded-2xl bg-zinc-900 group/gallery">
+        <div 
+          className="relative overflow-hidden rounded-2xl bg-zinc-900 group/gallery select-none cursor-grab active:cursor-grabbing"
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
           <div className="relative h-[400px] sm:h-[500px]">
             {galleryImages.map((url, i) => (
               <div
                 key={url}
-                className={`absolute inset-0 transition-opacity duration-700 cursor-pointer ${
+                className={`absolute inset-0 transition-opacity duration-700 ${
                   i === slideIdx ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
-                onClick={() => setFullscreen(i)}
+                onClick={() => {
+                  if (!hasDragged.current) setFullscreen(i);
+                }}
               >
                 <img
                   src={url}
                   alt={`Gallery ${i + 1}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover pointer-events-none"
                   loading="lazy"
+                  draggable="false"
                 />
               </div>
             ))}
@@ -235,7 +312,7 @@ function Gallery() {
               e.stopPropagation();
               setSlideIdx((p) => (p === 0 ? galleryImages.length - 1 : p - 1));
             }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-zinc-950/60 hover:bg-zinc-950/90 text-zinc-300 hover:text-white transition-all border border-zinc-800 hover:border-zinc-700 cursor-pointer opacity-0 group-hover/gallery:opacity-100"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-zinc-950/60 hover:bg-zinc-950/90 text-zinc-300 hover:text-white transition-all border border-zinc-800 hover:border-zinc-700 cursor-pointer opacity-100 lg:opacity-0 lg:group-hover/gallery:opacity-100"
             aria-label="Previous image"
           >
             <span className="text-2xl leading-none -translate-x-[1px]">‹</span>
@@ -246,7 +323,7 @@ function Gallery() {
               e.stopPropagation();
               setSlideIdx((p) => (p + 1) % galleryImages.length);
             }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-zinc-950/60 hover:bg-zinc-950/90 text-zinc-300 hover:text-white transition-all border border-zinc-800 hover:border-zinc-700 cursor-pointer opacity-0 group-hover/gallery:opacity-100"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-zinc-950/60 hover:bg-zinc-950/90 text-zinc-300 hover:text-white transition-all border border-zinc-800 hover:border-zinc-700 cursor-pointer opacity-100 lg:opacity-0 lg:group-hover/gallery:opacity-100"
             aria-label="Next image"
           >
             <span className="text-2xl leading-none translate-x-[1px]">›</span>
@@ -270,8 +347,12 @@ function Gallery() {
       </div>
       {fullscreen !== null && (
         <div
-          className="fixed inset-0 z-60 bg-black/95 flex items-center justify-center cursor-pointer"
-          onClick={() => setFullscreen(null)}
+          className="fixed inset-0 z-60 bg-black/95 flex items-center justify-center select-none cursor-grab active:cursor-grabbing"
+          onClick={() => { if (!fsHasDragged.current) setFullscreen(null); }}
+          onMouseDown={onFsMouseDown}
+          onMouseUp={onFsMouseUp}
+          onTouchStart={onFsTouchStart}
+          onTouchEnd={onFsTouchEnd}
         >
           <button
             onClick={(e) => {

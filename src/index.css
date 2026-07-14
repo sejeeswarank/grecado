@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: 'Cormorant Garamond', serif;
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --color-gold-300: #f4edd8;
+  --color-gold-400: #c2a259;
+  --color-gold-500: #976b2f;
+  --color-gold-600: #764f24;
+  --color-gold-700: #5b3c1d;
+  --color-zinc-105: #f5f5f5;
+  --color-zinc-305: #d4d4d4;
+  --color-zinc-350: #b0b0b0;
+  --color-zinc-550: #6b6b6b;
+  --color-zinc-650: #525252;
+  --color-zinc-755: #333333;
+  --color-emerald-605: #047857;
+}
+
+.glassmorphism {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  background: #ffffffb3;
+  border: 1px solid #0000000f;
+  box-shadow: 0 4px 30px #00000005;
+}
+.dark .glassmorphism {
+  box-shadow: none;
+  background: #09090bbf;
+  border: 1px solid #ffffff0d;
+}
+
+.gold-gradient-text {
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(135deg, #764f24 0%, #c2a259 50%, #5b3c1d 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.dark .gold-gradient-text {
+  background: linear-gradient(135deg, #f4edd8 0%, #c2a259 50%, #976b2f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

@@ -131,7 +131,7 @@ export const products = [
     category: "coat-suits",
     price: 999,
     color: "Imperial Navy Blue",
-    image: "https://italianvega.co.in/products/italian-navy-double-breasted-mens-suit?srsltid=AfmBOooFFikjn0CKD6u_0faYcUVvXehkL_YLUfHWlAuqAeJlHeoKgLqs",
+    image: "https://italianvega.co.in/cdn/shop/files/BLUED1.webp?v=1735463208&width=1100",
   },
   {
     id: "suits-three-piece-1",

@@ -73,7 +73,7 @@ export const products = [
     category: "pants",
     price: 899,
     color: "Raw Indigo Blue",
-    image: "https://images.unsplash.com/photo-1581778322231-7c89a7e4bb87?w=600&auto=format&fit=crop&q=80",
+    image: "https://di2ponv0v5otw.cloudfront.net/posts/2025/11/03/6909953e7321b00c0538a104/m_6909953ee9c77d54c83a4ffb.jpg",
   },
   {
     id: "pants-jeans-2",
@@ -81,7 +81,7 @@ export const products = [
     category: "pants",
     price: 899,
     color: "Medium Stone Wash",
-    image: "https://images.unsplash.com/photo-1542272454315-4c01d7abdf4a?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtzB9DS1_9X_L_RyhfUbRdeUG768_xDlaalrOoeiQoW1AfiZmTtG1XuTg&s=10",
   },
   {
     id: "pants-chinos-1",
@@ -89,7 +89,7 @@ export const products = [
     category: "pants",
     price: 899,
     color: "Warm Sand Khaki",
-    image: "https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?w=600&auto=format&fit=crop&q=80",
+    image: "https://www.careofcarl.com/bilder/artiklar/26577311r.jpg?m=1743693763",
   },
   {
     id: "pants-formal-1",
@@ -97,7 +97,7 @@ export const products = [
     category: "pants",
     price: 899,
     color: "Charcoal Grey",
-    image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3eBIE6DackrGC2v_cSD35b3FDNPm4RHM3BQCtL7-GEmkLmwMvtDw7h8o&s=10",
   },
   {
     id: "pants-cargo-1",
@@ -105,7 +105,7 @@ export const products = [
     category: "pants",
     price: 899,
     color: "Army Olive Green",
-    image: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=600&auto=format&fit=crop&q=80",
+    image: "https://cdn.shopify.com/s/files/1/0272/5065/5367/files/PLP-Bannar-Ripstop-Pant-Mobile.webp?v=1751352835",
   },
   {
     id: "pants-jogger-1",
@@ -113,7 +113,7 @@ export const products = [
     category: "pants",
     price: 899,
     color: "Charcoal Melange",
-    image: "https://images.unsplash.com/photo-1562869929-77410df034d2?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_OV5MFV_w2xy9W64NPwPK1f-gDiqaTbnMPiUKvGiZ1A&s=10",
   },
   {
     id: "pants-slim-1",
@@ -121,7 +121,7 @@ export const products = [
     category: "pants",
     price: 899,
     color: "Deep Midnight Navy",
-    image: "https://images.unsplash.com/photo-1594938374320-6aef3476c021?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTPMy0mRzvqphHpfCrwHyCQDKub-w7m3nwQxiF6gS3e7Q&s=10",
   },
 
   // ──────────────── COAT SUITS ────────────────
@@ -131,7 +131,7 @@ export const products = [
     category: "coat-suits",
     price: 999,
     color: "Imperial Navy Blue",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80",
+    image: "https://italianvega.co.in/products/italian-navy-double-breasted-mens-suit?srsltid=AfmBOooFFikjn0CKD6u_0faYcUVvXehkL_YLUfHWlAuqAeJlHeoKgLqs",
   },
   {
     id: "suits-three-piece-1",
@@ -139,7 +139,7 @@ export const products = [
     category: "coat-suits",
     price: 999,
     color: "Charcoal Grey",
-    image: "https://images.unsplash.com/photo-1593030761757-71fae45fa0e7?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWy41aSUyToaGxtk3N4wzOk5xqWRoULdr3BXbW-n8jNw5aqdMJeZ7zcA5T&s=10",
   },
   {
     id: "suits-blazer-1",
@@ -147,7 +147,7 @@ export const products = [
     category: "coat-suits",
     price: 999,
     color: "Sand Camel",
-    image: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFg0wuRD3UChA_2TrIKzJeqp__iXmnErTof-csyNnC9g&s=10",
   },
   {
     id: "suits-tuxedo-1",
@@ -155,7 +155,7 @@ export const products = [
     category: "coat-suits",
     price: 999,
     color: "Midnight Velvet Black",
-    image: "https://images.unsplash.com/photo-1544002177-fce4696659d8?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQSMVZHFeGZjFbnVh-wdaFO-_h_3J5JVsqcU0g_lG4qZ_TYRidsR6ONrlxz&s=10",
   },
   {
     id: "suits-wedding-1",
@@ -163,7 +163,7 @@ export const products = [
     category: "coat-suits",
     price: 999,
     color: "Ivory Cream",
-    image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRNIzqzoj79gHOPdcYw9qHsHBTw90DSOZWP-PU2XVAftQ&s",
   },
   {
     id: "suits-business-1",
@@ -171,7 +171,7 @@ export const products = [
     category: "coat-suits",
     price: 999,
     color: "Steel Grey Pinstripe",
-    image: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBRbXYYsWWlqS2LE1AArpEX3fnexcv3M59zQt6bPqunQ&s",
   },
   {
     id: "suits-dinner-1",
@@ -179,7 +179,7 @@ export const products = [
     category: "coat-suits",
     price: 999,
     color: "Deep Burgundy Velvet",
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&auto=format&fit=crop&q=80",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjzAzqVcmELQEQsRVkpn2nLthIeF2y-k18oCIK18GVJg&s",
   },
 
   // ──────────────── SHOES ────────────────

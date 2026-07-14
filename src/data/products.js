@@ -62,7 +62,7 @@ export const products = [
     category: "shirts",
     price: 799,
     color: "Sky Blue & White Stripe",
-    image: "https://images.unsplash.com/photo-1598550880862-5fafc6b18bd7?w=600&auto=format&fit=crop&q=80",
+    image: "https://hamercop.com/cdn/shop/files/3206_4_800x.jpg?v=1723446490",
   },
   
 
